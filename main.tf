@@ -334,32 +334,31 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "hybrid_dns_to_spokes
 }
 
 # ---------------------- AWS NETWORK FIREWALL ----------------------
-#
-# TEMPORARILY COMMENTED OUT UNTIL THIS FIX IS MERGED UPSTREAM:
-# https://github.com/aws-ia/terraform-aws-networkfirewall/pull/13
-#
-# module "aws_network_firewall" {
-#   count = local.create_anfw ? 1 : 0
-#
-#   source  = "aws-ia/networkfirewall/aws"
-#   version = "= 1.0.1"
-#
-#   network_firewall_name                     = var.central_vpcs.inspection.aws_network_firewall.name
-#   network_firewall_description              = var.central_vpcs.inspection.aws_network_firewall.description
-#   network_firewall_policy                   = var.central_vpcs.inspection.aws_network_firewall.policy_arn
-#   network_firewall_policy_change_protection = try(var.central_vpcs.inspection.aws_network_firewall.network_firewall_policy_change_protection, false)
-#   network_firewall_subnet_change_protection = try(var.central_vpcs.inspection.aws_network_firewall.network_firewall_subnet_change_protection, false)
-#
-#   vpc_id                = module.central_vpcs["inspection"].vpc_attributes.id
-#   vpc_subnets           = { for k, v in module.central_vpcs["inspection"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "endpoints" }
-#   number_azs            = var.central_vpcs.inspection.az_count
-#   routing_configuration = local.anfw_routing_configuration[local.inspection_configuration]
-#
-#   tags = merge(
-#     module.tags.tags_aws,
-#     try(var.central_vpcs.inspection.tags, {})
-#   )
-# }
+module "aws_network_firewall" {
+  count = local.create_anfw ? 1 : 0
+
+  # TEMPORARILY COMMENTED OUT UNTIL THIS FIX IS MERGED UPSTREAM:
+  # https://github.com/aws-ia/terraform-aws-networkfirewall/pull/13
+  # source  = "aws-ia/networkfirewall/aws"
+  # version = "= 1.0.1"
+  source = "git@github.com:guidion-digital/terraform-aws-networkfirewall.git"
+
+  network_firewall_name                     = var.central_vpcs.inspection.aws_network_firewall.name
+  network_firewall_description              = var.central_vpcs.inspection.aws_network_firewall.description
+  network_firewall_policy                   = var.central_vpcs.inspection.aws_network_firewall.policy_arn
+  network_firewall_policy_change_protection = try(var.central_vpcs.inspection.aws_network_firewall.network_firewall_policy_change_protection, false)
+  network_firewall_subnet_change_protection = try(var.central_vpcs.inspection.aws_network_firewall.network_firewall_subnet_change_protection, false)
+
+  vpc_id                = module.central_vpcs["inspection"].vpc_attributes.id
+  vpc_subnets           = { for k, v in module.central_vpcs["inspection"].private_subnet_attributes_by_az : split("/", k)[1] => v.id if split("/", k)[0] == "endpoints" }
+  number_azs            = var.central_vpcs.inspection.az_count
+  routing_configuration = local.anfw_routing_configuration[local.inspection_configuration]
+
+  tags = merge(
+    module.tags.tags_aws,
+    try(var.central_vpcs.inspection.tags, {})
+  )
+}
 
 # We need to get the CIDR blocks from a provided managed prefix list if:
 # 1/ Network Firewall is deployed and,

@@ -1,3 +1,64 @@
+locals {
+  vpc_information = {
+    # vpc-do-nothing = {
+    #   vpc_id                        = ""
+    #   vpc_cidr                      = null
+    #   transit_gateway_attachment_id = null
+    #   routing_domain                = "do-nothing"
+    #   office_reachable              = false
+    #   aws_client_vpn_reachable      = false
+    # },
+    vpc-1 = {
+      vpc_id                        = ""
+      vpc_cidr                      = module.vpc_1.vpc_attributes.cidr_block
+      transit_gateway_attachment_id = module.vpc_1.transit_gateway_attachment_id
+      routing_domain                = "vpc-1"
+      office_reachable              = false
+      aws_client_vpn_reachable      = false
+    },
+    # vpc-2 = {
+    #   vpc_id                        = ""
+    #   vpc_cidr                      = module.vpc_2.vpc_attributes.cidr_block
+    #   transit_gateway_attachment_id = module.vpc_2.transit_gateway_attachment_id
+    #   routing_domain                = "vpc-2"
+    #   office_reachable              = false
+    #   aws_client_vpn_reachable      = false
+    # },
+    vpc-3 = {
+      vpc_id                        = ""
+      vpc_cidr                      = module.vpc_3.vpc_attributes.cidr_block
+      transit_gateway_attachment_id = module.vpc_3.transit_gateway_attachment_id
+      routing_domain                = "vpc-3"
+      office_reachable              = false
+      aws_client_vpn_reachable      = false
+    },
+    # vpc-4 = {
+    #   vpc_id                        = ""
+    #   vpc_cidr                      = module.vpc_4.vpc_attributes.cidr_block
+    #   transit_gateway_attachment_id = module.vpc_4.transit_gateway_attachment_id
+    #   routing_domain                = "vpc-4"
+    #   office_reachable              = false
+    #   aws_client_vpn_reachable      = false
+    # },
+    # vpc-5 = {
+    #   vpc_id                        = ""
+    #   vpc_cidr                      = module.vpc_5.vpc_attributes.cidr_block
+    #   transit_gateway_attachment_id = module.vpc_5.transit_gateway_attachment_id
+    #   routing_domain                = "vpc-5"
+    #   office_reachable              = false
+    #   aws_client_vpn_reachable      = false
+    # }
+  }
+  # Create a new map with only the entries that have a non-empty transit_gateway_attachment_id.
+  enabled_vpc_information = {
+    for name, info in local.vpc_information : name => info
+    if info.transit_gateway_attachment_id != null
+  }
+
+  number_vpcs = length(local.enabled_vpc_information)
+}
+
+
 resource "aws_ec2_transit_gateway" "tgw" {
 
   description                     = "test-tgw"
@@ -10,36 +71,6 @@ resource "aws_ec2_transit_gateway" "tgw" {
     Name = "test-tgw"
   }
 }
-
-
-locals {
-  vpc_information = {
-    vpc-1 = {
-      vpc_id                        = ""
-      vpc_cidr                      = null
-      transit_gateway_attachment_id = null
-      routing_domain                = "vpc-1"
-      office_reachable              = false
-      aws_client_vpn_reachable      = true
-    },
-    vpc-2 = {
-      vpc_id                        = ""
-      vpc_cidr                      = null
-      transit_gateway_attachment_id = null
-      routing_domain                = "vpc-2"
-      office_reachable              = false
-      aws_client_vpn_reachable      = false
-    }
-  }
-  # Create a new map with only the entries that have a non-empty transit_gateway_attachment_id.
-  enabled_vpc_information = {
-    for name, info in local.vpc_information : name => info
-    if info.transit_gateway_attachment_id != null
-  }
-
-  number_vpcs = length(local.enabled_vpc_information)
-}
-
 
 module "hub-and-spoke" {
   source = "../../"
@@ -89,16 +120,16 @@ module "hub-and-spoke" {
       }
     }
 
-    shared_services = {
-      name       = "shared-services-vpc"
-      cidr_block = "10.120.2.0/24"
-      az_count   = 3
+    # shared_services = {
+    #   name       = "shared-services-vpc"
+    #   cidr_block = "10.120.2.0/24"
+    #   az_count   = 3
 
-      subnets = {
-        endpoints       = { netmask = 26 }
-        transit_gateway = { netmask = 28 }
-      }
-    }
+    #   subnets = {
+    #     endpoints       = { netmask = 26 }
+    #     transit_gateway = { netmask = 28 }
+    #   }
+    # }
   }
 }
 
@@ -126,22 +157,22 @@ resource "aws_ec2_managed_prefix_list" "network_prefix_list" {
 }
 
 # Managed prefix list for sharing with Office Router through BGP.
-resource "aws_ec2_managed_prefix_list" "network_prefix_list_site_to_site_vpn" {
-  name           = "Network's Prefix List"
-  address_family = "IPv4"
-  max_entries    = 25
+# resource "aws_ec2_managed_prefix_list" "network_prefix_list_site_to_site_vpn" {
+#   name           = "Network's Prefix List"
+#   address_family = "IPv4"
+#   max_entries    = 25
 
-  dynamic "entry" {
-    for_each = {
-      for name, info in local.enabled_vpc_information :
-      name => info if info.office_reachable
-    }
-    content {
-      cidr        = entry.value.vpc_cidr
-      description = entry.value.routing_domain
-    }
-  }
-}
+#   dynamic "entry" {
+#     for_each = {
+#       for name, info in local.enabled_vpc_information :
+#       name => info if info.office_reachable
+#     }
+#     content {
+#       cidr        = entry.value.vpc_cidr
+#       description = entry.value.routing_domain
+#     }
+#   }
+# }
 
 # add routes to egress tgw route tables to prevent NATing for these subnets
 # FIXME: This resource can not be created until the others have been

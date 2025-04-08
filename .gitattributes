@@ -1,0 +1,3 @@
+.github/workflows/* merge=ours
+examples/test_app/* merge=ours
+.detect-secrets.baseline merge=ours

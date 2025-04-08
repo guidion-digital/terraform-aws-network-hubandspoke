@@ -293,8 +293,7 @@ locals {
 # aws   tags = module.tags.tags_aws
 module "tags" {
   source  = "aws-ia/label/aws"
-  version = "0.0.5"
+  version = "0.0.6"
 
   tags = var.tags
 }
-

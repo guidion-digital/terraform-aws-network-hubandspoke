@@ -341,7 +341,7 @@ module "aws_network_firewall" {
   # https://github.com/aws-ia/terraform-aws-networkfirewall/pull/13
   # source  = "aws-ia/networkfirewall/aws"
   # version = "= 1.0.1"
-  source = "git@github.com:guidion-digital/terraform-aws-networkfirewall.git"
+  source = "github.com/guidion-digital/terraform-aws-networkfirewall"
 
   network_firewall_name                     = var.central_vpcs.inspection.aws_network_firewall.name
   network_firewall_description              = var.central_vpcs.inspection.aws_network_firewall.description

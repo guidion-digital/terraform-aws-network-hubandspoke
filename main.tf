@@ -107,10 +107,10 @@ resource "aws_ec2_transit_gateway_route_table_association" "spokes_tgw_rt_associ
 
 # Spoke VPC TGW propagation
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_spokes_propagation" {
-  count = local.spoke_to_spoke_propagation ? local.number_vpcs : 0
+  for_each = local.spoke_to_spoke_propagation ? { for idx, vpc in local.vpc_information : idx => vpc } : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[try(local.vpc_information[count.index].routing_domain, "spokes")].id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[try(each.value.routing_domain, "spokes")].id
 }
 
 # ---------------------- TRANSIT GATEWAY STATIC ROUTES ----------------------
@@ -267,12 +267,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_egress_pro
 # 1/ The Ingress VPC is created without Inspection VPC or,
 # 2/ Both Egress and Inspection VPC are created, and the traffic inspeciton is "east-west"
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_ingress_propagation" {
-  count = (
+  for_each = (
     local.spoke_to_ingress_propagation &&
     try(local.associate_and_propagate_to_tgw["ingress"], true)
-  ) ? local.number_vpcs : 0
+  ) ? { for idx, vpc in local.vpc_information : idx => vpc } : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["ingress"].id
 }
 

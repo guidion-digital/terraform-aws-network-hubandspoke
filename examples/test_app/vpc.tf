@@ -17,8 +17,8 @@ module "vpc_1" {
     }
     transit_gateway = {
       netmask                                         = 28
-      transit_gateway_default_route_table_association = true
-      transit_gateway_default_route_table_propagation = true
+      transit_gateway_default_route_table_association = false
+      transit_gateway_default_route_table_propagation = false
       transit_gateway_appliance_mode_support          = "disable"
       transit_gateway_dns_support                     = "enable"
     }
@@ -44,8 +44,8 @@ module "vpc_2" {
     }
     transit_gateway = {
       netmask                                         = 28
-      transit_gateway_default_route_table_association = true
-      transit_gateway_default_route_table_propagation = true
+      transit_gateway_default_route_table_association = false
+      transit_gateway_default_route_table_propagation = false
       transit_gateway_appliance_mode_support          = "disable"
       transit_gateway_dns_support                     = "enable"
     }
@@ -71,8 +71,8 @@ module "vpc_3" {
     }
     transit_gateway = {
       netmask                                         = 28
-      transit_gateway_default_route_table_association = true
-      transit_gateway_default_route_table_propagation = true
+      transit_gateway_default_route_table_association = false
+      transit_gateway_default_route_table_propagation = false
       transit_gateway_appliance_mode_support          = "disable"
       transit_gateway_dns_support                     = "enable"
     }
@@ -99,8 +99,8 @@ module "vpc_3" {
 #     }
 #     transit_gateway = {
 #       netmask                                         = 28
-#       transit_gateway_default_route_table_association = true
-#       transit_gateway_default_route_table_propagation = true
+#       transit_gateway_default_route_table_association = false
+#       transit_gateway_default_route_table_propagation = false
 #       transit_gateway_appliance_mode_support          = "disable"
 #       transit_gateway_dns_support                     = "enable"
 #     }
@@ -127,8 +127,8 @@ module "vpc_3" {
 #     }
 #     transit_gateway = {
 #       netmask                                         = 28
-#       transit_gateway_default_route_table_association = true
-#       transit_gateway_default_route_table_propagation = true
+#       transit_gateway_default_route_table_association = false
+#       transit_gateway_default_route_table_propagation = false
 #       transit_gateway_appliance_mode_support          = "disable"
 #       transit_gateway_dns_support                     = "enable"
 #     }

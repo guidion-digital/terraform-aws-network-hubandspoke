@@ -254,12 +254,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_inspection
 # 1/ The Egress VPC is created without Inspection VPC or,
 # 2/ Both Egress and Inspection VPC are created, and the traffic inspeciton is "all" or "east-west"
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_egress_propagation" {
-  count = (
+  for_each = (
     local.spoke_to_egress_propagation &&
     try(local.associate_and_propagate_to_tgw["egress"], true)
-  ) ? local.number_vpcs : 0
+  ) ? { for idx, vpc in local.vpc_information : idx => vpc } : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["egress"].id
 }
 

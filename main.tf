@@ -241,12 +241,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "ingress_to_inspectio
 
 # Spoke VPCs propagation to the Inspection RT - anytime this VPC is created
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_inspection_propagation" {
-  count = (
+  for_each = (
     local.spoke_to_inspection_propagation &&
     try(local.associate_and_propagate_to_tgw["inspection"], true)
-  ) ? local.number_vpcs : 0
+  ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["inspection"].id
 }
 
@@ -257,7 +257,7 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_egress_pro
   for_each = (
     local.spoke_to_egress_propagation &&
     try(local.associate_and_propagate_to_tgw["egress"], true)
-  ) ? { for idx, vpc in local.vpc_information : idx => vpc } : {}
+  ) ? local.vpc_information : {}
 
   transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["egress"].id
@@ -291,23 +291,23 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "ingress_to_spokes_pr
 
 # Spoke VPCs propagation to the Shared Services RT - anytime this VPC is created
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_shared_services_propagation" {
-  count = (
+  for_each = (
     contains(keys(var.central_vpcs), "shared_services") &&
     try(local.associate_and_propagate_to_tgw["shared_services"], true)
-  ) ? local.number_vpcs : 0
+    ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["shared_services"].id
 }
 
 # Spoke VPCs propagation to the Hybrid DNS RT - anytime this VPC is created
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_hybrid_dns_propagation" {
-  count = (
+  for_each = (
     contains(keys(var.central_vpcs), "hybrid_dns") &&
     try(local.associate_and_propagate_to_tgw["hybrid_dns"], true)
-  ) ? local.number_vpcs : 0
+  ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["hybrid_dns"].id
 }
 

@@ -1,13 +1,5 @@
 locals {
   vpc_information = {
-    # vpc-do-nothing = {
-    #   vpc_id                        = ""
-    #   vpc_cidr                      = null
-    #   transit_gateway_attachment_id = null
-    #   routing_domain                = "do-nothing"
-    #   office_reachable              = false
-    #   aws_client_vpn_reachable      = false
-    # },
     vpc-1 = {
       vpc_id                        = ""
       vpc_cidr                      = module.vpc_1.vpc_attributes.cidr_block
@@ -16,14 +8,14 @@ locals {
       office_reachable              = false
       aws_client_vpn_reachable      = false
     },
-    # vpc-2 = {
-    #   vpc_id                        = ""
-    #   vpc_cidr                      = module.vpc_2.vpc_attributes.cidr_block
-    #   transit_gateway_attachment_id = module.vpc_2.transit_gateway_attachment_id
-    #   routing_domain                = "vpc-2"
-    #   office_reachable              = false
-    #   aws_client_vpn_reachable      = false
-    # },
+    vpc-2 = {
+      vpc_id                        = ""
+      vpc_cidr                      = module.vpc_2.vpc_attributes.cidr_block
+      transit_gateway_attachment_id = module.vpc_2.transit_gateway_attachment_id
+      routing_domain                = "vpc-2"
+      office_reachable              = false
+      aws_client_vpn_reachable      = false
+    },
     vpc-3 = {
       vpc_id                        = ""
       vpc_cidr                      = module.vpc_3.vpc_attributes.cidr_block
@@ -31,30 +23,13 @@ locals {
       routing_domain                = "vpc-3"
       office_reachable              = false
       aws_client_vpn_reachable      = false
-    },
-    # vpc-4 = {
-    #   vpc_id                        = ""
-    #   vpc_cidr                      = module.vpc_4.vpc_attributes.cidr_block
-    #   transit_gateway_attachment_id = module.vpc_4.transit_gateway_attachment_id
-    #   routing_domain                = "vpc-4"
-    #   office_reachable              = false
-    #   aws_client_vpn_reachable      = false
-    # },
-    # vpc-5 = {
-    #   vpc_id                        = ""
-    #   vpc_cidr                      = module.vpc_5.vpc_attributes.cidr_block
-    #   transit_gateway_attachment_id = module.vpc_5.transit_gateway_attachment_id
-    #   routing_domain                = "vpc-5"
-    #   office_reachable              = false
-    #   aws_client_vpn_reachable      = false
-    # }
+    }
   }
   # Create a new map with only the entries that have a non-empty transit_gateway_attachment_id.
   enabled_vpc_information = {
     for name, info in local.vpc_information : name => info
     if info.transit_gateway_attachment_id != null
   }
-
   number_vpcs = length(local.enabled_vpc_information)
 }
 

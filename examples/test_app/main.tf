@@ -59,16 +59,34 @@ module "hub-and-spoke" {
   }
 
   spoke_vpcs = {
-    routing_domains = keys(local.enabled_vpc_information)
-    number_vpcs     = local.number_vpcs
+    # routing_domains = keys(local.enabled_vpc_information)
+    # number_vpcs     = local.number_vpcs
 
+    # vpc_information = {
+    #   for name, info in local.enabled_vpc_information :
+    #   name => {
+    #     vpc_id                        = info.vpc_id
+    #     transit_gateway_attachment_id = info.transit_gateway_attachment_id
+    #     routing_domain                = info.routing_domain
+    #   }
+    routing_domains = ["vpc-1", "vpc-2", "vpc-3"]
+    number_vpcs     = 3
     vpc_information = {
-      for name, info in local.enabled_vpc_information :
-      name => {
-        vpc_id                        = info.vpc_id
-        transit_gateway_attachment_id = info.transit_gateway_attachment_id
-        routing_domain                = info.routing_domain
-      }
+        vpc-1 = {
+            vpc_id                        = ""
+            transit_gateway_attachment_id = module.vpc_1.transit_gateway_attachment_id
+            routing_domain                = "vpc-1"
+        }
+        vpc-2 = {
+            vpc_id                        = ""
+            transit_gateway_attachment_id = module.vpc_2.transit_gateway_attachment_id
+            routing_domain                = "vpc-2"
+        }
+        vpc-3 = {
+            vpc_id                        = ""
+            transit_gateway_attachment_id = module.vpc_3.transit_gateway_attachment_id
+            routing_domain                = "vpc-3"
+        }
     }
   }
 

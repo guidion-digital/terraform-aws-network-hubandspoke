@@ -99,7 +99,7 @@ resource "aws_ec2_transit_gateway_route_table" "spokes_tgw_rt" {
 
 # Spoke VPC TGW association
 resource "aws_ec2_transit_gateway_route_table_association" "spokes_tgw_rt_association" {
-  for_each = var.spoke_vpcs.vpc_information
+  for_each = lookup(var.spoke_vpcs, "vpc_information", {})
 
   transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[each.value.routing_domain].id

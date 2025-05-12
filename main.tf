@@ -31,7 +31,7 @@ module "central_vpcs" {
   for_each = var.central_vpcs
 
   source  = "aws-ia/vpc/aws"
-  version = "= 4.4.0"
+  version = "= 4.4.4"
 
   name               = try(each.value.name, each.key)
   vpc_id             = try(each.value.vpc_id, null)
@@ -99,18 +99,18 @@ resource "aws_ec2_transit_gateway_route_table" "spokes_tgw_rt" {
 
 # Spoke VPC TGW association
 resource "aws_ec2_transit_gateway_route_table_association" "spokes_tgw_rt_association" {
-  count = local.number_vpcs
+  for_each = lookup(var.spoke_vpcs, "vpc_information", {})
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[try(local.vpc_information[count.index].routing_domain, "spokes")].id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[each.value.routing_domain].id
 }
 
 # Spoke VPC TGW propagation
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_spokes_propagation" {
-  count = local.spoke_to_spoke_propagation ? local.number_vpcs : 0
+  for_each = local.spoke_to_spoke_propagation ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
-  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[try(local.vpc_information[count.index].routing_domain, "spokes")].id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
+  transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.spokes_tgw_rt[each.value.routing_domain].id
 }
 
 # ---------------------- TRANSIT GATEWAY STATIC ROUTES ----------------------
@@ -241,12 +241,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "ingress_to_inspectio
 
 # Spoke VPCs propagation to the Inspection RT - anytime this VPC is created
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_inspection_propagation" {
-  count = (
+  for_each = (
     local.spoke_to_inspection_propagation &&
     try(local.associate_and_propagate_to_tgw["inspection"], true)
-  ) ? local.number_vpcs : 0
+  ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["inspection"].id
 }
 
@@ -254,12 +254,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_inspection
 # 1/ The Egress VPC is created without Inspection VPC or,
 # 2/ Both Egress and Inspection VPC are created, and the traffic inspeciton is "all" or "east-west"
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_egress_propagation" {
-  count = (
+  for_each = (
     local.spoke_to_egress_propagation &&
     try(local.associate_and_propagate_to_tgw["egress"], true)
-  ) ? local.number_vpcs : 0
+  ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["egress"].id
 }
 
@@ -267,12 +267,12 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_egress_pro
 # 1/ The Ingress VPC is created without Inspection VPC or,
 # 2/ Both Egress and Inspection VPC are created, and the traffic inspeciton is "east-west"
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_ingress_propagation" {
-  count = (
+  for_each = (
     local.spoke_to_ingress_propagation &&
     try(local.associate_and_propagate_to_tgw["ingress"], true)
-  ) ? local.number_vpcs : 0
+  ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["ingress"].id
 }
 
@@ -291,23 +291,23 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "ingress_to_spokes_pr
 
 # Spoke VPCs propagation to the Shared Services RT - anytime this VPC is created
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_shared_services_propagation" {
-  count = (
+  for_each = (
     contains(keys(var.central_vpcs), "shared_services") &&
     try(local.associate_and_propagate_to_tgw["shared_services"], true)
-  ) ? local.number_vpcs : 0
+    ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["shared_services"].id
 }
 
 # Spoke VPCs propagation to the Hybrid DNS RT - anytime this VPC is created
 resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_hybrid_dns_propagation" {
-  count = (
+  for_each = (
     contains(keys(var.central_vpcs), "hybrid_dns") &&
     try(local.associate_and_propagate_to_tgw["hybrid_dns"], true)
-  ) ? local.number_vpcs : 0
+  ) ? local.vpc_information : {}
 
-  transit_gateway_attachment_id  = local.vpc_information[count.index].transit_gateway_attachment_id
+  transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["hybrid_dns"].id
 }
 
@@ -337,8 +337,11 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "hybrid_dns_to_spokes
 module "aws_network_firewall" {
   count = local.create_anfw ? 1 : 0
 
-  source  = "aws-ia/networkfirewall/aws"
-  version = "= 1.0.0"
+  # TEMPORARILY COMMENTED OUT UNTIL THIS FIX IS MERGED UPSTREAM:
+  # https://github.com/aws-ia/terraform-aws-networkfirewall/pull/13
+  # source  = "aws-ia/networkfirewall/aws"
+  # version = "= 1.0.1"
+  source = "github.com/guidion-digital/terraform-aws-networkfirewall"
 
   network_firewall_name                     = var.central_vpcs.inspection.aws_network_firewall.name
   network_firewall_description              = var.central_vpcs.inspection.aws_network_firewall.description

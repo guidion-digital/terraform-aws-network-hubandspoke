@@ -294,7 +294,7 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "spokes_to_shared_ser
   for_each = (
     contains(keys(var.central_vpcs), "shared_services") &&
     try(local.associate_and_propagate_to_tgw["shared_services"], true)
-    ) ? local.vpc_information : {}
+  ) ? local.vpc_information : {}
 
   transit_gateway_attachment_id  = each.value.transit_gateway_attachment_id
   transit_gateway_route_table_id = aws_ec2_transit_gateway_route_table.tgw_route_table["shared_services"].id
@@ -337,11 +337,8 @@ resource "aws_ec2_transit_gateway_route_table_propagation" "hybrid_dns_to_spokes
 module "aws_network_firewall" {
   count = local.create_anfw ? 1 : 0
 
-  # TEMPORARILY COMMENTED OUT UNTIL THIS FIX IS MERGED UPSTREAM:
-  # https://github.com/aws-ia/terraform-aws-networkfirewall/pull/13
-  # source  = "aws-ia/networkfirewall/aws"
-  # version = "= 1.0.1"
-  source = "github.com/guidion-digital/terraform-aws-networkfirewall"
+  source  = "aws-ia/networkfirewall/aws"
+  version = "= 1.0.2"
 
   network_firewall_name                     = var.central_vpcs.inspection.aws_network_firewall.name
   network_firewall_description              = var.central_vpcs.inspection.aws_network_firewall.description
